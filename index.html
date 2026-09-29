@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notification Simulator</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
+
+  <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 relative overflow-hidden">
+    
+    <!-- Header -->
+    <div class="flex items-center space-x-3 mb-6 border-b border-slate-700 pb-4">
+      <div class="bg-blue-600/20 text-blue-400 p-3 rounded-xl">
+        <i class="fa-solid fa-bell text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold">Fake Notif Generator</h1>
+        <p class="text-xs text-slate-400">Simulasi Notifikasi Transfer Masuk</p>
+      </div>
+    </div>
+
+    <!-- Form Setting -->
+    <div class="space-y-4">
+      
+      <!-- Preset Selector -->
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1">Pilih Aplikasi / Bank:</label>
+        <select id="presetSelect" onchange="applyPreset()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
+          <option value="dana">DANA</option>
+          <option value="bca">BCA Mobile</option>
+          <option value="gopay">GoPay</option>
+          <option value="bri">BRImo</option>
+          <option value="custom">Kustom (Manual)</option>
+        </select>
+      </div>
+
+      <!-- Nama Pengirim / Aplikasi -->
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1">Nama Aplikasi / Pengirim:</label>
+        <input type="text" id="appName" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white" placeholder="Contoh: DANA">
+      </div>
+
+      <!-- Detail Pesan -->
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1">Pesan Notifikasi:</label>
+        <textarea id="appMessage" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white" placeholder="Pesan transfer..."></textarea>
+      </div>
+
+      <!-- Nominal Transfer -->
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1">Nominal Saldo (Rp):</label>
+        <input type="text" id="amount" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white" placeholder="50.000.000" value="50.000.000">
+      </div>
+
+      <!-- Path Logo Gambar -->
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1">Path / URL Logo:</label>
+        <input type="text" id="logoPath" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white" placeholder="./logos/dana.png">
+        <span class="text-[10px] text-slate-400">Gunakan path relatif folder gambar lokal kamu (contoh: <code>./logos/bca.png</code>)</span>
+      </div>
+
+      <!-- Timer Delay -->
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1">Jeda Waktu (Delay):</label>
+        <select id="delaySelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
+          <option value="0">Langsung (0 Detik)</option>
+          <option value="3">3 Detik</option>
+          <option value="5" selected>5 Detik (Cocok buat kunci HP)</option>
+          <option value="10">10 Detik</option>
+        </select>
+      </div>
+
+      <!-- Status Toast / Countdown -->
+      <div id="statusBox" class="hidden p-3 bg-blue-900/40 border border-blue-500/50 rounded-xl text-center text-xs text-blue-300">
+        <i class="fa-solid fa-spinner fa-spin mr-1"></i> Notifikasi akan muncul dalam <span id="countdown">0</span> detik...
+      </div>
+
+      <!-- Action Button -->
+      <button onclick="scheduleNotif()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition duration-200 transform active:scale-95 flex items-center justify-center space-x-2">
+        <i class="fa-solid fa-paper-plane"></i>
+        <span>Kirim Notifikasi</span>
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    // Database preset bawaan
+    const presets = {
+      dana: {
+        name: 'DANA',
+        msg: 'Isi saldo Rp {amount} dari Bank Transfer berhasil!',
+        logo: './logos/DANA.JPG'
+      },
+      bca: {
+        name: 'BCA mobile',
+        msg: 'm-Transfer: Rp {amount} dari PT GLOBAL JAYA berhasil masuk ke rek Anda.',
+        logo: './logos/BCA.JPG'
+      },
+      gopay: {
+        name: 'GoPay',
+        msg: 'Kamu menerima saldo GoPay sebesar Rp {amount}!',
+        logo: './logos/GOPAY.JPG'
+      },
+      bri: {
+        name: 'BRImo',
+        msg: 'Transfer Masuk Rp {amount} dari 0123**** berhasil.',
+        logo: '/logos/BRI.JPEG'
+      }
+    };
+
+    // Fungsi menerapkan preset saat dropdown berubah
+    function applyPreset() {
+      const selected = document.getElementById('presetSelect').value;
+      if (selected !== 'custom' && presets[selected]) {
+        document.getElementById('appName').value = presets[selected].name;
+        document.getElementById('appMessage').value = presets[selected].msg;
+        document.getElementById('logoPath').value = presets[selected].logo;
+      }
+    }
+
+    // Minta izin notifikasi
+    if ('Notification' in window) {
+      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+      }
+    }
+
+    // Eksekusi kirim notifikasi dengan jeda
+    function scheduleNotif() {
+      if (!('Notification' in window)) {
+        alert('Browser ini tidak mendukung Notifikasi Web.');
+        return;
+      }
+
+      if (Notification.permission !== 'granted') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') scheduleNotif();
+          else alert('Izin notifikasi ditolak!');
+        });
+        return;
+      }
+
+      const delay = parseInt(document.getElementById('delaySelect').value);
+      const statusBox = document.getElementById('statusBox');
+      const countdownSpan = document.getElementById('countdown');
+
+      if (delay > 0) {
+        let timeLeft = delay;
+        countdownSpan.innerText = timeLeft;
+        statusBox.classList.remove('hidden');
+
+        const interval = setInterval(() => {
+          timeLeft--;
+          countdownSpan.innerText = timeLeft;
+          if (timeLeft <= 0) {
+            clearInterval(interval);
+            statusBox.classList.add('hidden');
+            sendNotification();
+          }
+        }, 1000);
+      } else {
+        sendNotification();
+      }
+    }
+
+    // Membuat Notifikasi
+    function sendNotification() {
+      const appName = document.getElementById('appName').value || 'Sistem';
+      const rawMsg = document.getElementById('appMessage').value || 'Transfer Masuk';
+      const amount = document.getElementById('amount').value || '0';
+      const logo = document.getElementById('logoPath').value || './logos/default.png';
+
+      // Format teks nominal ke dalam pesan
+      const formattedMsg = rawMsg.replace('{amount}', amount);
+
+      const options = {
+        body: formattedMsg,
+        icon: logo,
+        badge: logo,
+        vibrate: [200, 100, 200, 100, 200], // Pola getar HP
+        tag: 'prank-notif',
+        renotify: true
+      };
+
+      try {
+        new Notification(appName, options);
+      } catch (e) {
+        console.error('Gagal mengirim notifikasi:', e);
+      }
+    }
+
+    // Load preset default saat pertama kali dibuka
+    window.onload = applyPreset;
+  </script>
+</body>
+</html>
