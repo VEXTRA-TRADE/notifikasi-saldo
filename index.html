@@ -7,10 +7,10 @@
     <!-- iOS PWA Capabilities -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Bank Jawa">
+    <meta name="apple-mobile-web-app-title" content="DANA">
     <meta name="theme-color" content="#0F172A">
 
-    <title>Bank Jawa Mobile - Simulasi Perbankan</title>
+    <title>DANA</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -105,7 +105,7 @@
                         <img id="headerBankLogo" src="https://placehold.co/100x100/0284c7/ffffff?text=BJ" alt="Logo Bank" class="w-full h-full object-cover rounded-[14px]" onerror="this.src='https://placehold.co/100x100/0284c7/ffffff?text=BJ'">
                     </div>
                     <div>
-                        <h1 id="headerBankName" class="font-extrabold text-lg tracking-tight leading-none text-white">Bank Jawa</h1>
+                        <h1 id="headerBankName" class="font-extrabold text-lg tracking-tight leading-none text-white">DANA</h1>
                         <p class="text-[11px] text-sky-400 font-medium tracking-wide mt-1 flex items-center gap-1">
                             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                             Simulasi Mobile Banking
@@ -289,7 +289,7 @@
                 <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                     <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
                         <i class="fa-solid fa-sliders text-sky-600"></i>
-                        Pengaturan Bank Jawa
+                        Pengaturan DANA
                     </h3>
                     <button id="btnCloseSettings" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
                         <i class="fa-solid fa-xmark text-sm"></i>
@@ -299,12 +299,12 @@
                 <div class="space-y-3 text-xs">
                     <div>
                         <label class="font-bold text-slate-700 block mb-1">Nama Bank / Aplikasi</label>
-                        <input type="text" id="cfgBankName" value="Bank Jawa" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        <input type="text" id="cfgBankName" value="DANA" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                     </div>
 
                     <div>
                         <label class="font-bold text-slate-700 block mb-1">URL Logo Bank (Image Direct Link)</label>
-                        <input type="text" id="cfgBankLogo" value="https://placehold.co/100x100/0284c7/ffffff?text=BJ" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        <input type="text" id="cfgBankLogo" value="DANA.JPG" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
                         <p class="text-[10px] text-slate-400 mt-1">Gunakan link gambar langsung (.png/.jpg) untuk logo kustom.</p>
                     </div>
 
@@ -337,7 +337,7 @@
             <div class="flex-1 min-w-0 pr-1">
                 <!-- Header Title & Timestamp -->
                 <div class="flex justify-between items-center mb-0.5">
-                    <span id="bannerBankName" class="text-[12px] font-extrabold text-slate-900 uppercase tracking-wide">BANK JAWA</span>
+                    <span id="bannerBankName" class="text-[12px] font-extrabold text-slate-900 uppercase tracking-wide">DANA</span>
                     <span class="text-[11px] font-medium text-slate-400">sekarang</span>
                 </div>
                 <!-- Banner Content -->
@@ -615,7 +615,7 @@
                     </div>
                     <div>
                         <h4 class="text-xs font-bold text-slate-900">${sender}</h4>
-                        <p class="text-[10px] font-medium text-slate-400">Transfer Masuk • ${timeStr}</p>
+                        <p class="text-[10px] font-medium text-slate-400">Berhasil Top Up • ${timeStr}</p>
                     </div>
                 </div>
                 <div class="text-right">
@@ -652,7 +652,7 @@
 
         btnSaveSettings.addEventListener('click', () => {
             state.bankName = cfgBankName.value.trim() || 'Bank Jawa';
-            state.bankLogo = cfgBankLogo.value.trim() || 'https://placehold.co/100x100/0284c7/ffffff?text=BJ';
+            state.bankLogo = cfgBankLogo.value.trim() || 'BCA.JPG';
             state.accountNumber = cfgAccountNumber.value.trim() || '3829-0192-8812';
             state.balance = parseInt(cfgBalance.value) || 0;
 
