@@ -1,202 +1,686 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Notification Simulator</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icon -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4 font-sans">
-
-  <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 relative overflow-hidden">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- Header -->
-    <div class="flex items-center space-x-3 mb-6 border-b border-slate-700 pb-4">
-      <div class="bg-blue-600/20 text-blue-400 p-3 rounded-xl">
-        <i class="fa-solid fa-bell text-xl"></i>
-      </div>
-      <div>
-        <h1 class="text-xl font-bold">Fake Notif Generator</h1>
-        <p class="text-xs text-slate-400">Simulasi Notifikasi Transfer Masuk</p>
-      </div>
+    <!-- iOS PWA Capabilities -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Bank Jawa">
+    <meta name="theme-color" content="#0F172A">
+
+    <title>Bank Jawa Mobile - Simulasi Perbankan</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background-color: #0F172A; /* Dark theme wrapper for desktop view background */
+            touch-action: manipulation;
+            overflow-x: hidden;
+        }
+
+        /* iOS Scrollbar Hiding */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Safe Areas for iPhone X/11/12/13/14/15/16 Notch & Dynamic Island */
+        .pt-safe {
+            padding-top: max(env(safe-area-inset-top), 20px);
+        }
+        .pb-safe {
+            padding-bottom: max(env(safe-area-inset-bottom), 20px);
+        }
+
+        /* Glossy Card Texture */
+        .bank-card-bg {
+            background: linear-gradient(135deg, #0284C7 0%, #0F172A 50%, #1E1B4B 100%);
+            box-shadow: 0 15px 35px -5px rgba(2, 132, 199, 0.4), 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Floating iOS Glass Notification Banner */
+        .ios-banner {
+            position: fixed;
+            top: max(env(safe-area-inset-top), 12px);
+            left: 50%;
+            transform: translateX(-50%) translateY(-180%);
+            width: calc(100% - 24px);
+            max-width: 410px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(25px) saturate(190%);
+            -webkit-backdrop-filter: blur(25px) saturate(190%);
+            border-radius: 22px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0,0,0,0.06);
+            z-index: 9999;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.12);
+        }
+
+        .ios-banner.active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Pulse Animation for Timer */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .animate-pulse-ring {
+            animation: pulse-ring 1.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="h-full flex justify-center items-center antialiased">
+
+    <!-- iPhone Device Frame Container -->
+    <div id="appContainer" class="w-full max-w-md h-full min-h-screen bg-slate-50 flex flex-col relative overflow-hidden shadow-2xl sm:h-[844px] sm:rounded-[44px] sm:border-[8px] sm:border-slate-800">
+        
+        <!-- Top App Navigation / Header Bar -->
+        <header class="bg-slate-900 text-white pt-safe px-5 pb-4 sticky top-0 z-30 shadow-md">
+            <div class="flex justify-between items-center pt-2">
+                <!-- Bank Identity Header -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 p-0.5 shadow-lg flex-shrink-0">
+                        <img id="headerBankLogo" src="https://placehold.co/100x100/0284c7/ffffff?text=BJ" alt="Logo Bank" class="w-full h-full object-cover rounded-[14px]" onerror="this.src='https://placehold.co/100x100/0284c7/ffffff?text=BJ'">
+                    </div>
+                    <div>
+                        <h1 id="headerBankName" class="font-extrabold text-lg tracking-tight leading-none text-white">Bank Jawa</h1>
+                        <p class="text-[11px] text-sky-400 font-medium tracking-wide mt-1 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                            Simulasi Mobile Banking
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Header Action Buttons -->
+                <div class="flex items-center gap-2">
+                    <button id="btnNotifPermission" title="Minta Izin Notifikasi iOS" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition active:scale-95">
+                        <i class="fa-solid fa-bell text-xs"></i>
+                        <span id="notifStatusText">Izin Notif</span>
+                    </button>
+                    <button id="btnOpenSettings" title="Pengaturan Bank" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center border border-slate-700 transition active:scale-95">
+                        <i class="fa-solid fa-gear text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Scrollable App Screen -->
+        <main class="flex-1 overflow-y-auto no-scrollbar px-4 pt-4 pb-48 space-y-5">
+
+            <!-- Digital ATM / Account Card -->
+            <div class="bank-card-bg rounded-[28px] p-6 text-white relative overflow-hidden border border-white/10">
+                <!-- Abstract Glow Overlay -->
+                <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -left-12 -top-12 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="flex justify-between items-start relative z-10">
+                    <div>
+                        <p class="text-xs font-medium text-sky-200 uppercase tracking-widest">Saldo Rekening</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <h2 class="text-2xl font-black tracking-tight text-white flex items-center gap-1">
+                                <span class="text-base font-semibold text-sky-300">Rp</span>
+                                <span id="displayBalance">2.500.000</span>
+                            </h2>
+                            <button id="toggleBalanceVisibility" class="text-sky-300/70 hover:text-white p-1 transition">
+                                <i id="eyeIcon" class="fa-solid fa-eye text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Card Chip / Contactless Icon -->
+                    <div class="flex flex-col items-end gap-1">
+                        <i class="fa-solid fa-wifi text-sky-300 text-lg opacity-80 rotate-90"></i>
+                        <span class="text-[10px] bg-sky-500/30 px-2 py-0.5 rounded-full text-sky-200 font-bold border border-sky-400/30">PRIORITAS</span>
+                    </div>
+                </div>
+
+                <!-- Card Details Footer -->
+                <div class="mt-8 pt-4 border-t border-white/10 flex justify-between items-end relative z-10">
+                    <div>
+                        <p class="text-[10px] text-sky-300 uppercase tracking-wider">Pemilik Rekening</p>
+                        <p id="cardHolderName" class="font-bold text-sm text-slate-100 tracking-wide mt-0.5">NASABAH UTAMA</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-sky-300 uppercase tracking-wider">Nomor Rekening</p>
+                        <p id="cardAccountNumber" class="font-mono text-xs font-semibold text-slate-200 tracking-widest mt-0.5">3829-0192-8812</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="grid grid-cols-4 gap-3 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                <button class="flex flex-col items-center gap-1.5 active:scale-95 transition">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg font-bold shadow-sm">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </div>
+                    <span class="text-[11px] font-semibold text-slate-700">Transfer</span>
+                </button>
+                <button class="flex flex-col items-center gap-1.5 active:scale-95 transition">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg font-bold shadow-sm">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <span class="text-[11px] font-semibold text-slate-700">Top Up</span>
+                </button>
+                <button class="flex flex-col items-center gap-1.5 active:scale-95 transition">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg font-bold shadow-sm">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <span class="text-[11px] font-semibold text-slate-700">QRIS</span>
+                </button>
+                <button id="btnQuickSettings" class="flex flex-col items-center gap-1.5 active:scale-95 transition">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center text-lg font-bold shadow-sm">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <span class="text-[11px] font-semibold text-slate-700">Set Bank</span>
+                </button>
+            </div>
+
+            <!-- Active Timer Simulation Status Box (Hidden by default) -->
+            <div id="countdownWidget" class="hidden bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-4 text-white shadow-lg animate-pulse-ring">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-stopwatch animate-spin"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm">Menunggu Transfer Masuk...</h4>
+                            <p id="countdownSenderText" class="text-xs text-amber-100">Dari: BCA - AHMAD SUDIRMAN</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span id="countdownSeconds" class="text-2xl font-black tracking-tight bg-white/20 px-3 py-1 rounded-xl">05s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Mutation / History List -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-sky-600"></i>
+                        Mutasi Transaksi
+                    </h3>
+                    <span class="text-[11px] text-slate-400 font-medium">Hari Ini</span>
+                </div>
+
+                <div id="mutationList" class="bg-white rounded-2xl border border-slate-100 shadow-sm divide-y divide-slate-100 overflow-hidden">
+                    <!-- Default Empty State -->
+                    <div id="emptyMutation" class="p-8 text-center">
+                        <i class="fa-solid fa-receipt text-3xl text-slate-300 mb-2"></i>
+                        <p class="text-xs text-slate-400 font-medium">Belum ada mutasi masuk.</p>
+                        <p class="text-[11px] text-slate-300 mt-0.5">Gunakan panel di bawah untuk mensimulasikan transfer.</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Simulation Control Bottom Drawer -->
+        <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200/80 rounded-t-[32px] p-5 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] z-20 pb-safe">
+            <div class="w-10 h-1.5 bg-slate-200 rounded-full mx-auto mb-4"></div>
+            
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                    Simulasi Transfer Masuk
+                </h3>
+                <span class="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold">Timer Detik</span>
+            </div>
+
+            <!-- Form Controls -->
+            <div class="space-y-3">
+                <!-- Row 1: Sender & Nominal -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pengirim & Bank</label>
+                        <input type="text" id="simSender" value="BCA - AHMAD SUDIRMAN" placeholder="BCA - NAMA" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Nominal (Rp)</label>
+                        <input type="number" id="simAmount" value="500000" placeholder="500000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                    </div>
+                </div>
+
+                <!-- Row 2: Timer Seconds Choice -->
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Tunda Notifikasi (Detik)</label>
+                    <div class="grid grid-cols-5 gap-1.5">
+                        <button type="button" data-seconds="0" class="btn-timer-preset px-2 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-sky-600 text-white shadow-sm transition">0s</button>
+                        <button type="button" data-seconds="3" class="btn-timer-preset px-2 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 transition">3s</button>
+                        <button type="button" data-seconds="5" class="btn-timer-preset px-2 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 transition">5s</button>
+                        <button type="button" data-seconds="10" class="btn-timer-preset px-2 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 transition">10s</button>
+                        <button type="button" data-seconds="30" class="btn-timer-preset px-2 py-1.5 rounded-lg text-xs font-bold border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 transition">30s</button>
+                    </div>
+                    <input type="hidden" id="selectedDelaySeconds" value="0">
+                </div>
+
+                <!-- Submit Simulation Button -->
+                <button id="btnTriggerSimulation" class="w-full bg-slate-900 hover:bg-black active:scale-[0.98] text-white font-bold py-3 rounded-xl text-xs tracking-wide flex items-center justify-center gap-2 shadow-lg transition">
+                    <i class="fa-solid fa-paper-plane text-sky-400"></i>
+                    <span>KIRIM NOTIFIKASI SIMULASI</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- App Settings Modal -->
+        <div id="settingsModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl w-full max-w-sm p-5 shadow-2xl space-y-4 border border-slate-100 animate-in fade-in zoom-in duration-200">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-sky-600"></i>
+                        Pengaturan Bank Jawa
+                    </h3>
+                    <button id="btnCloseSettings" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <div class="space-y-3 text-xs">
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Nama Bank / Aplikasi</label>
+                        <input type="text" id="cfgBankName" value="Bank Jawa" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                    </div>
+
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">URL Logo Bank (Image Direct Link)</label>
+                        <input type="text" id="cfgBankLogo" value="https://placehold.co/100x100/0284c7/ffffff?text=BJ" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        <p class="text-[10px] text-slate-400 mt-1">Gunakan link gambar langsung (.png/.jpg) untuk logo kustom.</p>
+                    </div>
+
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Nomor Rekening</label>
+                        <input type="text" id="cfgAccountNumber" value="3829-0192-8812" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                    </div>
+
+                    <div>
+                        <label class="font-bold text-slate-700 block mb-1">Atur Saldo Utama (Rp)</label>
+                        <input type="number" id="cfgBalance" value="2500000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                    </div>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button id="btnSaveSettings" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- iOS Floating Top Notification Banner -->
+        <div id="iosBanner" class="ios-banner p-3.5 flex items-start gap-3.5">
+            <!-- App Icon with Custom Logo -->
+            <div class="w-10 h-10 rounded-xl bg-slate-900 flex-shrink-0 overflow-hidden shadow-sm border border-black/10">
+                <img id="bannerBankLogo" src="https://placehold.co/100x100/0284c7/ffffff?text=BJ" class="w-full h-full object-cover" alt="Logo">
+            </div>
+            
+            <div class="flex-1 min-w-0 pr-1">
+                <!-- Header Title & Timestamp -->
+                <div class="flex justify-between items-center mb-0.5">
+                    <span id="bannerBankName" class="text-[12px] font-extrabold text-slate-900 uppercase tracking-wide">BANK JAWA</span>
+                    <span class="text-[11px] font-medium text-slate-400">sekarang</span>
+                </div>
+                <!-- Banner Content -->
+                <h5 class="text-[13px] font-bold text-slate-900 leading-snug">Transfer Masuk Berhasil</h5>
+                <p id="bannerMessage" class="text-[12.5px] text-slate-700 leading-snug mt-0.5 font-medium line-clamp-2">
+                    Rp 500.000 dari BCA - AHMAD SUDIRMAN
+                </p>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Form Setting -->
-    <div class="space-y-4">
-      
-      <!-- Preset Selector -->
-      <div>
-        <label class="block text-xs font-medium text-slate-300 mb-1">Pilih Aplikasi / Bank:</label>
-        <select id="presetSelect" onchange="applyPreset()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
-          <option value="dana">DANA</option>
-          <option value="bca">BCA Mobile</option>
-          <option value="gopay">GoPay</option>
-          <option value="bri">BRImo</option>
-          <option value="custom">Kustom (Manual)</option>
-        </select>
-      </div>
+    <!-- JavaScript Application Engine -->
+    <script>
+        // Default State Configuration
+        const state = {
+            bankName: localStorage.getItem('bj_bankName') || 'Bank Jawa',
+            bankLogo: localStorage.getItem('bj_bankLogo') || 'https://placehold.co/100x100/0284c7/ffffff?text=BJ',
+            accountNumber: localStorage.getItem('bj_accNum') || '3829-0192-8812',
+            balance: parseInt(localStorage.getItem('bj_balance')) || 2500000,
+            isBalanceVisible: true,
+            selectedDelaySeconds: 0,
+            activeCountdownTimer: null
+        };
 
-      <!-- Nama Pengirim / Aplikasi -->
-      <div>
-        <label class="block text-xs font-medium text-slate-300 mb-1">Nama Aplikasi / Pengirim:</label>
-        <input type="text" id="appName" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white" placeholder="Contoh: DANA">
-      </div>
+        // DOM Elements
+        const headerBankName = document.getElementById('headerBankName');
+        const headerBankLogo = document.getElementById('headerBankLogo');
+        const bannerBankName = document.getElementById('bannerBankName');
+        const bannerBankLogo = document.getElementById('bannerBankLogo');
+        const displayBalance = document.getElementById('displayBalance');
+        const cardAccountNumber = document.getElementById('cardAccountNumber');
+        const toggleBalanceVisibility = document.getElementById('toggleBalanceVisibility');
+        const eyeIcon = document.getElementById('eyeIcon');
+        
+        const simSender = document.getElementById('simSender');
+        const simAmount = document.getElementById('simAmount');
+        const btnTriggerSimulation = document.getElementById('btnTriggerSimulation');
+        const countdownWidget = document.getElementById('countdownWidget');
+        const countdownSenderText = document.getElementById('countdownSenderText');
+        const countdownSeconds = document.getElementById('countdownSeconds');
+        const mutationList = document.getElementById('mutationList');
+        const emptyMutation = document.getElementById('emptyMutation');
 
-      <!-- Detail Pesan -->
-      <div>
-        <label class="block text-xs font-medium text-slate-300 mb-1">Pesan Notifikasi:</label>
-        <textarea id="appMessage" rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white" placeholder="Pesan transfer..."></textarea>
-      </div>
+        const btnNotifPermission = document.getElementById('btnNotifPermission');
+        const notifStatusText = document.getElementById('notifStatusText');
+        
+        const settingsModal = document.getElementById('settingsModal');
+        const btnOpenSettings = document.getElementById('btnOpenSettings');
+        const btnQuickSettings = document.getElementById('btnQuickSettings');
+        const btnCloseSettings = document.getElementById('btnCloseSettings');
+        const btnSaveSettings = document.getElementById('btnSaveSettings');
+        
+        const cfgBankName = document.getElementById('cfgBankName');
+        const cfgBankLogo = document.getElementById('cfgBankLogo');
+        const cfgAccountNumber = document.getElementById('cfgAccountNumber');
+        const cfgBalance = document.getElementById('cfgBalance');
 
-      <!-- Nominal Transfer -->
-      <div>
-        <label class="block text-xs font-medium text-slate-300 mb-1">Nominal Saldo (Rp):</label>
-        <input type="text" id="amount" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white" placeholder="50.000.000" value="50.000.000">
-      </div>
+        const iosBanner = document.getElementById('iosBanner');
+        const bannerMessage = document.getElementById('bannerMessage');
 
-      <!-- Path Logo Gambar -->
-      <div>
-        <label class="block text-xs font-medium text-slate-300 mb-1">Path / URL Logo:</label>
-        <input type="text" id="logoPath" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white" placeholder="./logos/dana.png">
-        <span class="text-[10px] text-slate-400">Gunakan path relatif folder gambar lokal kamu (contoh: <code>./logos/bca.png</code>)</span>
-      </div>
+        // Helper: Format Currency Rupiah
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                maximumFractionDigits: 0
+            }).format(number);
+        }
 
-      <!-- Timer Delay -->
-      <div>
-        <label class="block text-xs font-medium text-slate-300 mb-1">Jeda Waktu (Delay):</label>
-        <select id="delaySelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-white">
-          <option value="0">Langsung (0 Detik)</option>
-          <option value="3">3 Detik</option>
-          <option value="5" selected>5 Detik (Cocok buat kunci HP)</option>
-          <option value="10">10 Detik</option>
-        </select>
-      </div>
+        // Play iOS Chime Bell via Web Audio API (No external sound file required)
+        function playChimeSound() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                
+                // Tone 1
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(1046.50, ctx.currentTime); // C6
+                gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                
+                // Tone 2 (Higher Pitch Chime)
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(1567.98, ctx.currentTime + 0.12); // G6
+                gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.12);
+                gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
 
-      <!-- Status Toast / Countdown -->
-      <div id="statusBox" class="hidden p-3 bg-blue-900/40 border border-blue-500/50 rounded-xl text-center text-xs text-blue-300">
-        <i class="fa-solid fa-spinner fa-spin mr-1"></i> Notifikasi akan muncul dalam <span id="countdown">0</span> detik...
-      </div>
+                osc1.start(ctx.currentTime);
+                osc1.stop(ctx.currentTime + 0.8);
+                osc2.start(ctx.currentTime + 0.12);
+                osc2.stop(ctx.currentTime + 1.2);
 
-      <!-- Action Button -->
-      <button onclick="scheduleNotif()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl shadow-lg transition duration-200 transform active:scale-95 flex items-center justify-center space-x-2">
-        <i class="fa-solid fa-paper-plane"></i>
-        <span>Kirim Notifikasi</span>
-      </button>
+                // Haptic feedback if available on device
+                if (navigator.vibrate) {
+                    navigator.vibrate([40, 60, 40]);
+                }
+            } catch (e) {
+                console.log('Audio playback error:', e);
+            }
+        }
 
-    </div>
-  </div>
+        // Check & Update Notification Permission Status
+        function updateNotifPermissionStatus() {
+            if (!("Notification" in window)) {
+                notifStatusText.innerText = "Tidak Ada Support";
+                btnNotifPermission.classList.add('opacity-50');
+                return;
+            }
 
-  <script>
-    // Database preset bawaan
-    const presets = {
-      dana: {
-        name: 'DANA',
-        msg: 'Isi saldo Rp {amount} dari Bank Transfer berhasil!',
-        logo: './logos/DANA.JPG'
-      },
-      bca: {
-        name: 'BCA mobile',
-        msg: 'm-Transfer: Rp {amount} dari PT GLOBAL JAYA berhasil masuk ke rek Anda.',
-        logo: './logos/BCA.JPG'
-      },
-      gopay: {
-        name: 'GoPay',
-        msg: 'Kamu menerima saldo GoPay sebesar Rp {amount}!',
-        logo: './logos/GOPAY.JPG'
-      },
-      bri: {
-        name: 'BRImo',
-        msg: 'Transfer Masuk Rp {amount} dari 0123**** berhasil.',
-        logo: '/logos/BRI.JPEG'
-      }
-    };
+            if (Notification.permission === "granted") {
+                notifStatusText.innerText = "Aktif";
+                btnNotifPermission.classList.replace('text-sky-400', 'text-emerald-400');
+            } else if (Notification.permission === "denied") {
+                notifStatusText.innerText = "Ditolak";
+                btnNotifPermission.classList.replace('text-sky-400', 'text-rose-400');
+            } else {
+                notifStatusText.innerText = "Izinkan Notif";
+            }
+        }
 
-    // Fungsi menerapkan preset saat dropdown berubah
-    function applyPreset() {
-      const selected = document.getElementById('presetSelect').value;
-      if (selected !== 'custom' && presets[selected]) {
-        document.getElementById('appName').value = presets[selected].name;
-        document.getElementById('appMessage').value = presets[selected].msg;
-        document.getElementById('logoPath').value = presets[selected].logo;
-      }
-    }
-
-    // Minta izin notifikasi
-    if ('Notification' in window) {
-      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-        Notification.requestPermission();
-      }
-    }
-
-    // Eksekusi kirim notifikasi dengan jeda
-    function scheduleNotif() {
-      if (!('Notification' in window)) {
-        alert('Browser ini tidak mendukung Notifikasi Web.');
-        return;
-      }
-
-      if (Notification.permission !== 'granted') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') scheduleNotif();
-          else alert('Izin notifikasi ditolak!');
+        btnNotifPermission.addEventListener('click', () => {
+            if (!("Notification" in window)) {
+                showInAppToast("Browser / iOS Anda belum mendukung Notification API.");
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                updateNotifPermissionStatus();
+                if (permission === 'granted') {
+                    showInAppToast("Izin notifikasi diberikan!");
+                }
+            });
         });
-        return;
-      }
 
-      const delay = parseInt(document.getElementById('delaySelect').value);
-      const statusBox = document.getElementById('statusBox');
-      const countdownSpan = document.getElementById('countdown');
+        // Trigger System Web Notification (For iOS Native Lockscreen / Dynamic Island support when installed)
+        function triggerSystemNotification(title, message, logoUrl) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                    new Notification(title, {
+                        body: message,
+                        icon: logoUrl,
+                        badge: logoUrl,
+                        tag: 'bank-jawa-transfer'
+                    });
+                } catch (e) {
+                    console.log("System notification fail:", e);
+                }
+            }
+        }
 
-      if (delay > 0) {
-        let timeLeft = delay;
-        countdownSpan.innerText = timeLeft;
-        statusBox.classList.remove('hidden');
+        // Trigger In-App Banner
+        let bannerTimeout;
+        function showIOSBanner(sender, amount) {
+            bannerBankName.innerText = state.bankName.toUpperCase();
+            bannerBankLogo.src = state.bankLogo;
+            bannerMessage.innerText = `Rp ${formatRupiah(amount)} dari ${sender}`;
 
-        const interval = setInterval(() => {
-          timeLeft--;
-          countdownSpan.innerText = timeLeft;
-          if (timeLeft <= 0) {
-            clearInterval(interval);
-            statusBox.classList.add('hidden');
-            sendNotification();
-          }
-        }, 1000);
-      } else {
-        sendNotification();
-      }
-    }
+            playChimeSound();
 
-    // Membuat Notifikasi
-    function sendNotification() {
-      const appName = document.getElementById('appName').value || 'Sistem';
-      const rawMsg = document.getElementById('appMessage').value || 'Transfer Masuk';
-      const amount = document.getElementById('amount').value || '0';
-      const logo = document.getElementById('logoPath').value || './logos/default.png';
+            iosBanner.classList.add('active');
 
-      // Format teks nominal ke dalam pesan
-      const formattedMsg = rawMsg.replace('{amount}', amount);
+            if (bannerTimeout) clearTimeout(bannerTimeout);
+            bannerTimeout = setTimeout(() => {
+                iosBanner.classList.remove('active');
+            }, 5000);
+        }
 
-      const options = {
-        body: formattedMsg,
-        icon: logo,
-        badge: logo,
-        vibrate: [200, 100, 200, 100, 200], // Pola getar HP
-        tag: 'prank-notif',
-        renotify: true
-      };
+        // Execute Final Transfer Process
+        function processIncomingTransfer(sender, amount) {
+            // 1. Update State & UI Balance
+            const prevBalance = state.balance;
+            state.balance += amount;
+            localStorage.setItem('bj_balance', state.balance);
+            animateBalanceCounter(prevBalance, state.balance);
 
-      try {
-        new Notification(appName, options);
-      } catch (e) {
-        console.error('Gagal mengirim notifikasi:', e);
-      }
-    }
+            // 2. Add Mutation Item
+            addMutationRecord(sender, amount);
 
-    // Load preset default saat pertama kali dibuka
-    window.onload = applyPreset;
-  </script>
+            // 3. Trigger Banner & System Notification
+            const notifMsg = `Rp ${formatRupiah(amount)} dari ${sender}`;
+            showIOSBanner(sender, amount);
+            triggerSystemNotification(`[${state.bankName}] Transfer Masuk`, notifMsg, state.bankLogo);
+        }
+
+        // Timer Preset Selector
+        document.querySelectorAll('.btn-timer-preset').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.btn-timer-preset').forEach(b => {
+                    b.classList.replace('bg-sky-600', 'bg-slate-100');
+                    b.classList.replace('text-white', 'text-slate-700');
+                });
+                btn.classList.replace('bg-slate-100', 'bg-sky-600');
+                btn.classList.replace('text-slate-700', 'text-white');
+
+                const secs = parseInt(btn.getAttribute('data-seconds'));
+                state.selectedDelaySeconds = secs;
+            });
+        });
+
+        // Main Transfer Button Click
+        btnTriggerSimulation.addEventListener('click', () => {
+            const sender = simSender.value.trim() || 'Hamba Allah';
+            const amount = parseInt(simAmount.value) || 0;
+            const delay = state.selectedDelaySeconds;
+
+            if (amount <= 0) return;
+
+            if (state.activeCountdownTimer) {
+                clearInterval(state.activeCountdownTimer);
+            }
+
+            if (delay === 0) {
+                processIncomingTransfer(sender, amount);
+            } else {
+                // Show Countdown Widget
+                let remaining = delay;
+                countdownWidget.classList.remove('hidden');
+                countdownSenderText.innerText = `Dari: ${sender}`;
+                countdownSeconds.innerText = `${remaining.toString().padStart(2, '0')}s`;
+
+                state.activeCountdownTimer = setInterval(() => {
+                    remaining--;
+                    countdownSeconds.innerText = `${remaining.toString().padStart(2, '0')}s`;
+
+                    if (remaining <= 0) {
+                        clearInterval(state.activeCountdownTimer);
+                        countdownWidget.classList.add('hidden');
+                        processIncomingTransfer(sender, amount);
+                    }
+                }, 1000);
+            }
+        });
+
+        // Smooth Number Counter
+        function animateBalanceCounter(start, end) {
+            if (!state.isBalanceVisible) return;
+            const duration = 800;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const currentVal = Math.floor(start + (end - start) * progress);
+                displayBalance.innerText = formatRupiah(currentVal);
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    displayBalance.innerText = formatRupiah(end);
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        // Add Mutation Record
+        function addMutationRecord(sender, amount) {
+            if (emptyMutation) emptyMutation.style.display = 'none';
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            const row = document.createElement('div');
+            row.className = 'p-3.5 flex items-center justify-between hover:bg-slate-50/80 transition';
+            row.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold">
+                        <i class="fa-solid fa-arrow-down-left"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-900">${sender}</h4>
+                        <p class="text-[10px] font-medium text-slate-400">Transfer Masuk • ${timeStr}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs font-extrabold text-emerald-600">+Rp ${formatRupiah(amount)}</span>
+                </div>
+            `;
+            mutationList.prepend(row);
+        }
+
+        // Toggle Hide/Show Balance
+        toggleBalanceVisibility.addEventListener('click', () => {
+            state.isBalanceVisible = !state.isBalanceVisible;
+            if (state.isBalanceVisible) {
+                displayBalance.innerText = formatRupiah(state.balance);
+                eyeIcon.className = "fa-solid fa-eye text-sm";
+            } else {
+                displayBalance.innerText = "••••••••";
+                eyeIcon.className = "fa-solid fa-eye-slash text-sm";
+            }
+        });
+
+        // Settings Modal Handlers
+        function openSettings() {
+            cfgBankName.value = state.bankName;
+            cfgBankLogo.value = state.bankLogo;
+            cfgAccountNumber.value = state.accountNumber;
+            cfgBalance.value = state.balance;
+            settingsModal.classList.remove('hidden');
+        }
+
+        btnOpenSettings.addEventListener('click', openSettings);
+        btnQuickSettings.addEventListener('click', openSettings);
+        btnCloseSettings.addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+        btnSaveSettings.addEventListener('click', () => {
+            state.bankName = cfgBankName.value.trim() || 'Bank Jawa';
+            state.bankLogo = cfgBankLogo.value.trim() || 'https://placehold.co/100x100/0284c7/ffffff?text=BJ';
+            state.accountNumber = cfgAccountNumber.value.trim() || '3829-0192-8812';
+            state.balance = parseInt(cfgBalance.value) || 0;
+
+            localStorage.setItem('bj_bankName', state.bankName);
+            localStorage.setItem('bj_bankLogo', state.bankLogo);
+            localStorage.setItem('bj_accNum', state.accountNumber);
+            localStorage.setItem('bj_balance', state.balance);
+
+            renderAppProfile();
+            settingsModal.classList.add('hidden');
+        });
+
+        // Render App Profile from State
+        function renderAppProfile() {
+            headerBankName.innerText = state.bankName;
+            headerBankLogo.src = state.bankLogo;
+            cardAccountNumber.innerText = state.accountNumber;
+            if (state.isBalanceVisible) {
+                displayBalance.innerText = formatRupiah(state.balance);
+            }
+        }
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            renderAppProfile();
+            updateNotifPermissionStatus();
+        });
+
+    </script>
 </body>
 </html>
